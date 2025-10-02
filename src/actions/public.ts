@@ -2,7 +2,7 @@
 
 import { gift } from "@/db/schema";
 import db from "@/db";
-import { and, eq, count } from "drizzle-orm";
+import { and, eq, count, or, ilike } from "drizzle-orm";
 
 export async function getAllGifts(page = 1, limit = 12) {
   const offset = (page - 1) * limit;
@@ -28,6 +28,58 @@ export async function getAllGifts(page = 1, limit = 12) {
     .from(gift)
     .orderBy(gift.createdAt)
     .where(eq(gift.isActive, true))
+    .limit(limit)
+    .offset(offset);
+
+  return {
+    gifts,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalCount,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+      limit,
+    },
+  };
+}
+
+export async function searchGifts(searchQuery: string, page = 1, limit = 12) {
+  const offset = (page - 1) * limit;
+
+  const searchCondition = searchQuery
+    ? or(
+        ilike(gift.name, `%${searchQuery}%`),
+        ilike(gift.description, `%${searchQuery}%`),
+        ilike(gift.category, `%${searchQuery}%`)
+      )
+    : undefined;
+
+  const whereCondition = searchCondition
+    ? and(searchCondition, eq(gift.isActive, true))
+    : eq(gift.isActive, true);
+
+  const [totalCountResult] = await db
+    .select({ count: count() })
+    .from(gift)
+    .where(whereCondition);
+
+  const totalCount = totalCountResult.count;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  const gifts = await db
+    .select({
+      id: gift.id,
+      name: gift.name,
+      description: gift.description,
+      price: gift.price,
+      image: gift.imageUrl,
+      category: gift.category,
+      stock: gift.stock,
+    })
+    .from(gift)
+    .where(whereCondition)
+    .orderBy(gift.createdAt)
     .limit(limit)
     .offset(offset);
 

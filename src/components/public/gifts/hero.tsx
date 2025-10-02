@@ -6,8 +6,9 @@ import { ArrowRight, Search } from "lucide-react";
 import React from "react";
 import Testimonials from "../home/testimonials";
 import { useQuery } from "@tanstack/react-query";
-import { getAllGifts } from "@/actions/public";
+import { getAllGifts, searchGifts } from "@/actions/public";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -22,11 +23,33 @@ const Hero = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentPage = Number(searchParams.get("page")) || 1;
+  const searchQuery = searchParams.get("search") || "";
+
+  const [searchInput, setSearchInput] = useState(searchQuery);
+
+  useEffect(() => {
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["gifts", currentPage],
-    queryFn: () => getAllGifts(currentPage, 12),
+    queryKey: ["gifts", currentPage, searchQuery],
+    queryFn: () => {
+      if (searchQuery.trim()) {
+        return searchGifts(searchQuery, currentPage, 12);
+      }
+      return getAllGifts(currentPage, 12);
+    },
   });
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchInput.trim()) {
+      params.set("search", searchInput.trim());
+    }
+    params.set("page", "1");
+    router.push(`?${params.toString()}`);
+  };
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -45,15 +68,17 @@ const Hero = () => {
         className="w-full min-h-[500px] px-4 sm:px-8 bg-cover bg-center"
       ></div>
       <div className="w-full bg-black flex justify-center md:justify-end items-center p-5 gap-2 lg:gap-10">
-        <div className="flex items-center gap-2">
+        <form onSubmit={handleSearch} className="flex items-center gap-2">
           <Input
             placeholder="Search for a gift"
             className="bg-white text-black"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
-          <Button className="bg-green-500 text-black">
+          <Button type="submit" className="bg-green-500 text-black">
             Search <Search className="w-4 h-4" />
           </Button>
-        </div>
+        </form>
         <Button>
           Sort by <ArrowRight className="w-4 h-4" />
         </Button>
