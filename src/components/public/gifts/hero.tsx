@@ -1,12 +1,40 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Search } from "lucide-react";
 import React from "react";
 import Testimonials from "../home/testimonials";
+import { useQuery } from "@tanstack/react-query";
+import { getAllGifts } from "@/actions/public";
+import { useSearchParams, useRouter } from "next/navigation";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import formatPrice from "@/lib/price-formatter";
 
 const Hero = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const currentPage = Number(searchParams.get("page")) || 1;
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["gifts", currentPage],
+    queryFn: () => getAllGifts(currentPage, 12),
+  });
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", page.toString());
+    router.push(`?${params.toString()}`);
+  };
   return (
-    <div>
+    <div className="min-h-screen">
       <div
         style={{
           backgroundImage:
@@ -30,28 +58,100 @@ const Hero = () => {
           Sort by <ArrowRight className="w-4 h-4" />
         </Button>
       </div>
-      <div className="w-full bg-black p-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 container mx-auto">
-        {Array.from({ length: 40 }).map((_, index) => (
-          <div key={index} className="flex flex-col gap-2">
-            <div
-              style={{
-                backgroundImage:
-                  "url('/images/d4d6568e0e98e17af805e007f8e80712ff2de821.jpg')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-              className="w-full aspect-square rounded-xl border-t-8 border-green-500"
-            ></div>
-            <div className="flex flex-col gap-2">
-              <p className="text-white font-bold text-3xl line-clamp-1">
-                Gift Name
-              </p>
-              <p className="text-green-500 font-semibold text-xl">$100</p>
-            </div>
+      <div className="w-full bg-black p-5 container mx-auto">
+        {isLoading && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {Array.from({ length: 12 }).map((_, index) => (
+              <div key={index} className="flex flex-col gap-2 animate-pulse">
+                <div className="w-full aspect-square rounded-xl border-t-8 border-green-500 bg-gray-700"></div>
+                <div className="flex flex-col gap-2">
+                  <div className="h-8 bg-gray-700 rounded"></div>
+                  <div className="h-6 bg-gray-700 rounded w-20"></div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
+
+        {error && (
+          <div className="text-center text-white py-8">
+            <p>Error loading gifts. Please try again later.</p>
+          </div>
+        )}
+
+        {data && (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-8">
+              {data.gifts.map((gift) => (
+                <div key={gift.id} className="flex flex-col gap-2">
+                  <div
+                    style={{
+                      backgroundImage: gift.image
+                        ? `url('${gift.image}')`
+                        : "url('/images/d4d6568e0e98e17af805e007f8e80712ff2de821.jpg')",
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                    className="w-full aspect-square rounded-xl border-t-8 border-green-500"
+                  ></div>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-white font-bold text-3xl line-clamp-2">
+                      {gift.name}
+                    </p>
+                    <p className="text-green-500 font-semibold text-xl">
+                      {formatPrice(Number(gift.price))}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {data.pagination.totalPages > 1 && (
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      className={
+                        currentPage <= 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+
+                  {Array.from(
+                    { length: data.pagination.totalPages },
+                    (_, i) => i + 1
+                  ).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => handlePageChange(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      className={
+                        currentPage >= data.pagination.totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </>
+        )}
       </div>
-      <Testimonials/>   
+      <Testimonials />
     </div>
   );
 };
