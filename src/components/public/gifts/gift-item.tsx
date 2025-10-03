@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
 import Image from "next/image";
 import formatPrice from "@/lib/price-formatter";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -23,6 +22,7 @@ import {
 import { GiftTile } from "@/components/public/gifts/hero";
 import Testimonials from "@/components/public/home/testimonials";
 import CTA from "@/components/public/home/cta";
+import AddToCart from "@/components/cart-button";
 
 const GiftItem = ({ giftID }: { giftID: string }) => {
   const { data, isLoading, error } = useQuery({
@@ -33,6 +33,7 @@ const GiftItem = ({ giftID }: { giftID: string }) => {
   });
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string>("");
 
   if (isLoading)
     return (
@@ -73,7 +74,12 @@ const GiftItem = ({ giftID }: { giftID: string }) => {
         </div>
       </div>
     );
-  if (error && error instanceof Error) return <div className="min-h-svh bg-black text-white container mx-auto py-10 px-5 grid place-items-center mt-16"><p>Failed to fetch gift</p></div>;
+  if (error && error instanceof Error)
+    return (
+      <div className="min-h-svh bg-black text-white container mx-auto py-10 px-5 grid place-items-center mt-16">
+        <p>Failed to fetch gift</p>
+      </div>
+    );
   const images = data?.images || [];
   const mainImage =
     images[activeImageIndex] ||
@@ -137,7 +143,10 @@ const GiftItem = ({ giftID }: { giftID: string }) => {
                 )}
                 <div className="flex items-center gap-3">
                   {availableSizes.length > 0 && (
-                    <Select>
+                    <Select
+                      value={selectedSize}
+                      onValueChange={setSelectedSize}
+                    >
                       <SelectTrigger className="min-w-28 bg-green-500/10 text-white border-0">
                         <SelectValue placeholder="Size" />
                       </SelectTrigger>
@@ -150,26 +159,18 @@ const GiftItem = ({ giftID }: { giftID: string }) => {
                       </SelectContent>
                     </Select>
                   )}
-                  <Select>
-                    <SelectTrigger className="min-w-24 bg-green-500/10 text-white border-0">
-                      <SelectValue placeholder="Qty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="4">4</SelectItem>
-                      <SelectItem value="5">5</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
-              <Button
-                className="w-full text-black bg-green-500"
-                disabled={Number(data.stock) <= 0}
-              >
-                {Number(data.stock) <= 0 ? "Out of stock" : "Add to cart"}
-              </Button>
+              <AddToCart
+                product={{
+                  id: data.id,
+                  name: data.name,
+                  price: Number(data.price),
+                  images: data.images.map((url) => ({ url })),
+                  description: data.description,
+                }}
+                selectedSize={selectedSize || undefined}
+              />
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="description">
                   <AccordionTrigger>Description & Fit</AccordionTrigger>

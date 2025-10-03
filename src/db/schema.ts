@@ -84,3 +84,37 @@ export const verification = pgTable("verification", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+
+export const order = pgTable("order", {
+  id: text("id").primaryKey(),
+  trackingId: text("tracking_id").notNull().unique(),
+  recipientName: text("recipient_name").notNull(),
+  recipientEmail: text("recipient_email").notNull(),
+  recipientPhone: text("recipient_phone").notNull(),
+  recipientAddress: text("recipient_address").notNull(),
+  recipientCity: text("recipient_city"),
+  recipientZipCode: text("recipient_zip_code"),
+  giftMessage: text("gift_message"),
+  totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"),
+  estimatedArrival: timestamp("estimated_arrival").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const orderItem = pgTable("order_item", {
+  id: text("id").primaryKey(),
+  orderId: text("order_id")
+    .notNull()
+    .references(() => order.id, { onDelete: "cascade" }),
+  giftId: text("gift_id").notNull(),
+  giftName: text("gift_name").notNull(),
+  giftImage: text("gift_image").notNull(),
+  giftPrice: numeric("gift_price", { precision: 10, scale: 2 }).notNull(),
+  quantity: integer("quantity").notNull(),
+  size: text("size"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

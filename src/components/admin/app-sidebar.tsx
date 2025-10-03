@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   IconCamera,
   IconChartBar,
@@ -16,12 +16,13 @@ import {
   IconSettings,
   IconUsers,
   IconGift,
-} from "@tabler/icons-react"
+  IconShoppingCart,
+} from "@tabler/icons-react";
 
-import { NavDocuments } from "@/components/admin/nav-documents"
-import { NavMain } from "@/components/admin/nav-main"
-import { NavSecondary } from "@/components/admin/nav-secondary"
-import { NavUser } from "@/components/admin/nav-user"
+import { NavDocuments } from "@/components/admin/nav-documents";
+import { NavMain } from "@/components/admin/nav-main";
+import { NavSecondary } from "@/components/admin/nav-secondary";
+import { NavUser } from "@/components/admin/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -30,8 +31,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import Link from "next/link"
+} from "@/components/ui/sidebar";
+import Link from "next/link";
 
 const data = {
   user: {
@@ -44,6 +45,11 @@ const data = {
       title: "Dashboard",
       url: "/admin",
       icon: IconDashboard,
+    },
+    {
+      title: "Orders",
+      url: "/admin/orders",
+      icon: IconShoppingCart,
     },
     {
       title: "Gifts",
@@ -143,7 +149,7 @@ const data = {
       icon: IconFileWord,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -172,5 +178,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

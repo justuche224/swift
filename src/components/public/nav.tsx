@@ -7,7 +7,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShoppingCart } from "lucide-react";
+import Cart from "@/components/cart";
 
 const Nav = () => {
   const pathname = usePathname();
@@ -25,9 +26,9 @@ const Nav = () => {
       active: pathname === "/gift-catalog",
     },
     {
-      label: "Testimonial",
-      href: "/#testimonials",
-      active: pathname === "/#testimonials",
+      label: "Track Order",
+      href: "/track",
+      active: pathname === "/track",
     },
     {
       label: "Contact Us",
@@ -70,7 +71,8 @@ const Nav = () => {
                 </Button>
               ))}
             </div>
-            <div>
+            <div className="flex items-center gap-2">
+              <Cart Icon={ShoppingCart} variant="ghost" />
               <Button className="rounded-full bg-green-500 text-black px-6 py-2 text-lg font-semibold hover:bg-green-600">
                 Send a Package
               </Button>
@@ -80,7 +82,8 @@ const Nav = () => {
 
         {/* Mobile Navigation */}
         {isMobile && (
-          <>
+          <div className="flex items-center gap-2">
+            <Cart Icon={ShoppingCart} variant="ghost" />
             <Button
               variant="ghost"
               size="icon"
@@ -93,7 +96,7 @@ const Nav = () => {
                 <Menu className="h-6 w-6" />
               )}
             </Button>
-          </>
+          </div>
         )}
       </nav>
 
