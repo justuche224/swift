@@ -1,10 +1,12 @@
 import Hero from "@/components/public/gifts/hero";
-import React from "react";
+import React, { Suspense } from "react";
 
 const page = () => {
   return (
     <div>
-      <Hero />
+      <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <Hero />
+      </Suspense>
     </div>
   );
 };
