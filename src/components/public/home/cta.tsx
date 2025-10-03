@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import React from "react";
 
 const CTA = () => {
@@ -23,7 +24,7 @@ const CTA = () => {
           Browse our collection and send your love in just a few clicks.
         </p>
         <Button className="bg-green-500 text-black px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-full font-semibold w-fit mx-auto hover:bg-green-600">
-          Explore all Gifts
+          <Link href="/gift-catalog">Explore all Gifts</Link>
         </Button>
       </div>
     </div>

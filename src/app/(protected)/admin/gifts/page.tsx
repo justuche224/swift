@@ -56,9 +56,9 @@ export default async function GiftsPage() {
               gifts.map((gift) => (
                 <TableRow className="text-white" key={gift.id}>
                   <TableCell>
-                    {gift.imageUrl ? (
+                    {gift.imageUrls && gift.imageUrls.length > 0 ? (
                       <Image
-                        src={gift.imageUrl}
+                        src={gift.imageUrls[0]}
                         alt={gift.name}
                         width={48}
                         height={48}

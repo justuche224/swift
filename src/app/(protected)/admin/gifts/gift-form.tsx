@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  createGift,
-  updateGift,
-  uploadGiftImage,
-  type Gift,
-} from "@/actions/admin";
+import { createGift, updateGift, type Gift } from "@/actions/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +18,8 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { IconX } from "@tabler/icons-react";
 import Image from "next/image";
+
+const MAX_IMAGES = 3;
 
 const CATEGORIES = [
   "Electronics",
@@ -42,34 +39,88 @@ interface GiftFormProps {
 
 export function GiftForm({ gift }: GiftFormProps) {
   const [isPending, startTransition] = useTransition();
-  const [imageUrl, setImageUrl] = useState<string | null>(
-    gift?.imageUrl || null
-  );
+  const [imageUrls, setImageUrls] = useState<string[]>(gift?.imageUrls || []);
+  const [sizes, setSizes] = useState<string[]>(gift?.sizes || []);
+  const [sizeInput, setSizeInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
+    const remainingSlots = MAX_IMAGES - imageUrls.length;
+    if (remainingSlots === 0) {
+      toast.error(`Maximum ${MAX_IMAGES} images allowed`);
       return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+
+    const invalidFiles = filesToUpload.filter(
+      (file) => !file.type.startsWith("image/")
+    );
+    if (invalidFiles.length > 0) {
+      toast.error("Please upload only image files");
+      return;
+    }
+
+    if (filesToUpload.length < files.length) {
+      toast.warning(
+        `Only uploading ${filesToUpload.length} image(s) due to ${MAX_IMAGES} image limit`
+      );
     }
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const uploadPromises = filesToUpload.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      const result = await uploadGiftImage(formData);
-      setImageUrl(result.imageUrl);
-      toast.success("Image uploaded successfully");
+        const response = await fetch("/api/upload/gift-image", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error("Upload failed");
+        }
+
+        const result = await response.json();
+        return result.imageUrl;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      setImageUrls([...imageUrls, ...uploadedUrls]);
+      toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
     } catch {
-      toast.error("Failed to upload image");
+      toast.error("Failed to upload images");
     } finally {
       setIsUploading(false);
+      e.target.value = "";
     }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImageUrls(imageUrls.filter((_, i) => i !== index));
+  };
+
+  const handleAddSize = () => {
+    const trimmedSize = sizeInput.trim();
+    if (!trimmedSize) {
+      toast.error("Please enter a size");
+      return;
+    }
+    if (sizes.includes(trimmedSize)) {
+      toast.error("Size already added");
+      return;
+    }
+    setSizes([...sizes, trimmedSize]);
+    setSizeInput("");
+  };
+
+  const handleRemoveSize = (index: number) => {
+    setSizes(sizes.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -82,7 +133,8 @@ export function GiftForm({ gift }: GiftFormProps) {
       price: formData.get("price") as string,
       category: formData.get("category") as string,
       stock: parseInt(formData.get("stock") as string),
-      imageUrl: imageUrl || null,
+      imageUrls,
+      sizes,
       isActive: formData.get("isActive") === "on",
     };
 
@@ -173,33 +225,39 @@ export function GiftForm({ gift }: GiftFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="image">Gift Image</Label>
+        <Label htmlFor="image">Gift Images (up to {MAX_IMAGES})</Label>
         <div className="flex flex-col gap-4">
-          {imageUrl ? (
-            <div className="relative w-fit">
-              <Image
-                src={imageUrl}
-                alt="Gift preview"
-                width={128}
-                height={128}
-                className="h-32 w-32 object-cover rounded border"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                onClick={() => setImageUrl(null)}
-              >
-                <IconX className="h-4 w-4" />
-              </Button>
+          {imageUrls.length > 0 && (
+            <div className="flex flex-wrap gap-4">
+              {imageUrls.map((url, index) => (
+                <div key={index} className="relative w-fit">
+                  <Image
+                    src={url}
+                    alt={`Gift preview ${index + 1}`}
+                    width={128}
+                    height={128}
+                    className="h-32 w-32 object-cover rounded border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                    onClick={() => handleRemoveImage(index)}
+                  >
+                    <IconX className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
-          ) : (
+          )}
+          {imageUrls.length < MAX_IMAGES && (
             <div className="flex items-center gap-4">
               <Input
                 id="image"
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileChange}
                 disabled={isUploading}
                 className="cursor-pointer"
@@ -213,7 +271,51 @@ export function GiftForm({ gift }: GiftFormProps) {
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Upload an image for the gift (max 4MB)
+          Upload up to {MAX_IMAGES} images for the gift (max 4MB each)
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="sizes">Available Sizes (Optional)</Label>
+        <div className="flex gap-2">
+          <Input
+            id="sizes"
+            value={sizeInput}
+            onChange={(e) => setSizeInput(e.target.value)}
+            placeholder="e.g., S, M, L or 38, 39, 40"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddSize();
+              }
+            }}
+          />
+          <Button type="button" onClick={handleAddSize} variant="outline">
+            Add
+          </Button>
+        </div>
+        {sizes.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {sizes.map((size, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1 rounded-md"
+              >
+                <span>{size}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSize(index)}
+                  className="ml-1 hover:text-destructive"
+                >
+                  <IconX className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Add sizes for this gift (e.g., S, M, L for clothes or 38, 39, 40 for
+          shoes). Press Enter or click Add.
         </p>
       </div>
 

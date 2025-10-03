@@ -5,25 +5,9 @@ import { gift } from "@/db/schema";
 import { requireAdmin } from "@/lib/server-auth";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { uploadFile } from "@/lib/upload";
 
 export type Gift = typeof gift.$inferSelect;
 export type NewGift = typeof gift.$inferInsert;
-
-export async function uploadGiftImage(formData: FormData) {
-  const isAdmin = await requireAdmin();
-  if (!isAdmin) {
-    throw new Error("Unauthorized");
-  }
-
-  const file = formData.get("file") as File;
-  if (!file) {
-    throw new Error("No file provided");
-  }
-
-  const imageUrl = await uploadFile(file, "gift");
-  return { imageUrl };
-}
 
 export async function getAllGifts() {
   const isAdmin = await requireAdmin();
@@ -32,7 +16,11 @@ export async function getAllGifts() {
   }
 
   const gifts = await db.select().from(gift).orderBy(gift.createdAt);
-  return gifts;
+  return gifts.map((g) => ({
+    ...g,
+    imageUrls: g.imageUrls || [],
+    sizes: g.sizes || [],
+  }));
 }
 
 export async function getGiftById(id: string) {
@@ -42,7 +30,15 @@ export async function getGiftById(id: string) {
   }
 
   const gifts = await db.select().from(gift).where(eq(gift.id, id));
-  return gifts[0] || null;
+  const result = gifts[0] || null;
+  if (result) {
+    return {
+      ...result,
+      imageUrls: result.imageUrls || [],
+      sizes: result.sizes || [],
+    };
+  }
+  return result;
 }
 
 export async function createGift(

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Search } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 import Testimonials from "../home/testimonials";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +19,47 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import formatPrice from "@/lib/price-formatter";
+
+export const GiftTile = ({
+  id,
+  images,
+  name,
+  price,
+}: {
+  id: string;
+  images: string[] | null;
+  name: string | null;
+  price: string | number | null;
+}) => {
+  const displayImage =
+    images && images.length > 0
+      ? images[0]
+      : "/images/d4d6568e0e98e17af805e007f8e80712ff2de821.jpg";
+
+  return (
+    <Link
+      href={`/gift-catalog/${id}`}
+      className="border-green-500 hover:border-2 rounded-xl hover:p-2 transition-all duration-300"
+    >
+      <div className="flex flex-col gap-2">
+        <div
+          style={{
+            backgroundImage: `url('${displayImage}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+          className="w-full aspect-square rounded-xl border-t-8 border-green-500"
+        ></div>
+        <div className="flex flex-col gap-2">
+          <p className="text-white font-bold text-3xl line-clamp-2">{name}</p>
+          <p className="text-green-500 font-semibold text-xl">
+            {formatPrice(Number(price || 0))}
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+};
 
 const Hero = () => {
   const searchParams = useSearchParams();
@@ -108,26 +150,13 @@ const Hero = () => {
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-8">
               {data.gifts.map((gift) => (
-                <div key={gift.id} className="flex flex-col gap-2">
-                  <div
-                    style={{
-                      backgroundImage: gift.image
-                        ? `url('${gift.image}')`
-                        : "url('/images/d4d6568e0e98e17af805e007f8e80712ff2de821.jpg')",
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                    className="w-full aspect-square rounded-xl border-t-8 border-green-500"
-                  ></div>
-                  <div className="flex flex-col gap-2">
-                    <p className="text-white font-bold text-3xl line-clamp-2">
-                      {gift.name}
-                    </p>
-                    <p className="text-green-500 font-semibold text-xl">
-                      {formatPrice(Number(gift.price))}
-                    </p>
-                  </div>
-                </div>
+                <GiftTile
+                  key={gift.id}
+                  id={gift.id}
+                  images={gift.images}
+                  name={gift.name}
+                  price={gift.price}
+                />
               ))}
             </div>
 

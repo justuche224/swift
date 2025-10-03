@@ -21,7 +21,7 @@ export async function getAllGifts(page = 1, limit = 12) {
       name: gift.name,
       description: gift.description,
       price: gift.price,
-      image: gift.imageUrl,
+      images: gift.imageUrls,
       category: gift.category,
       stock: gift.stock,
     })
@@ -73,7 +73,7 @@ export async function searchGifts(searchQuery: string, page = 1, limit = 12) {
       name: gift.name,
       description: gift.description,
       price: gift.price,
-      image: gift.imageUrl,
+      images: gift.imageUrls,
       category: gift.category,
       stock: gift.stock,
     })
@@ -103,11 +103,37 @@ export async function getGiftById(id: string) {
       name: gift.name,
       description: gift.description,
       price: gift.price,
-      image: gift.imageUrl,
+      images: gift.imageUrls,
       category: gift.category,
       stock: gift.stock,
+      sizes: gift.sizes,
     })
     .from(gift)
     .where(and(eq(gift.id, id), eq(gift.isActive, true)));
   return gifts[0] || null;
+}
+
+export async function getRelatedGifts(
+  category: string,
+  excludeId?: string,
+  limit = 6
+) {
+  if (!category) return [];
+  const gifts = await db
+    .select({
+      id: gift.id,
+      name: gift.name,
+      description: gift.description,
+      price: gift.price,
+      images: gift.imageUrls,
+      category: gift.category,
+      stock: gift.stock,
+    })
+    .from(gift)
+    .where(and(eq(gift.category, category), eq(gift.isActive, true)))
+    .orderBy(gift.createdAt)
+    .limit(limit);
+
+  const filtered = excludeId ? gifts.filter((g) => g.id !== excludeId) : gifts;
+  return filtered.slice(0, limit);
 }
