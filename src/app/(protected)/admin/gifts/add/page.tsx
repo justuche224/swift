@@ -1,25 +1,15 @@
-import { GiftForm } from "../gift-form";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { IconArrowLeft } from "@tabler/icons-react";
+import {requireAdmin} from "@/lib/server-auth";
+import { redirect } from "next/navigation";
+import AddGiftPage from "./component";
 
-export default function AddGiftPage() {
-  return (
-    <div className="p-6 space-y-6 max-w-2xl mx-auto text-white">
-      <div className="space-y-2">
-        <Button size="sm" asChild>
-          <Link href="/admin/gifts">
-            <IconArrowLeft className="mr-2 h-4 w-4" />
-            Back to Gifts
-          </Link>
-        </Button>
-        <h1 className="text-3xl font-bold">Add New Gift</h1>
-        <p className="text-muted-foreground">
-          Create a new gift item for your catalog
-        </p>
-      </div>
+const AddGift = async () => {
+    const isAdmin = await requireAdmin();
 
-      <GiftForm />
-    </div>
-  );
+    if (!isAdmin) {
+        return  redirect("/login");
+    }
+    return (
+        <AddGiftPage/>
+    )
 }
+export default AddGift
