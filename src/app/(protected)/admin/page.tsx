@@ -6,7 +6,7 @@ const Admin = async () => {
     const isAdmin = await requireAdmin();
 
     if (!isAdmin) {
-        return  redirect("/login");
+        return  redirect("/login?callbackUrl=/admin");
     }
     return (
         <AdminDashboard/>

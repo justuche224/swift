@@ -7,13 +7,15 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-export function LoginForm({
+export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,8 +27,10 @@ export function LoginForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    await authClient.signIn.email(
+    await authClient.signUp.email(
       {
+        role: "user",
+        name,
         email,
         password,
         callbackURL: callbackUrl || "/",
@@ -36,7 +40,7 @@ export function LoginForm({
           setLoading(true);
         },
         onSuccess: () => {
-          toast.success("Login successful");
+          toast.success("Register successful");
           router.push(callbackUrl || "/");
           setLoading(false);
         },
@@ -55,12 +59,24 @@ export function LoginForm({
       onSubmit={handleSubmit}
     >
       <div className="flex flex-col items-center gap-2 text-center text-white">
-        <h1 className="text-2xl font-bold">Login to your account</h1>
+        <h1 className="text-2xl font-bold">Register your account</h1>
         <p className="text-muted-foreground text-sm text-balance">
-          Enter your email below to login to your account
+          Enter your email below to register your account
         </p>
       </div>
       <div className="grid gap-6">
+        <div className="grid gap-3">
+          <Label htmlFor="name">Name</Label>
+          <Input
+            id="name"
+            className="bg-white"
+            type="text"
+            placeholder="John Doe"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
         <div className="grid gap-3">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -94,7 +110,7 @@ export function LoginForm({
           />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Registering..." : "Register"}
         </Button>
         {/* <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
           <span className="bg-background text-muted-foreground relative z-10 px-2">
@@ -112,12 +128,12 @@ export function LoginForm({
         </Button> */}
       </div>
       <div className="text-center text-sm text-white">
-        Don&apos;t have an account?{" "}
+        Already have an account?{" "}
         <Link
-          href={"/register?callbackUrl=" + (callbackUrl || "/")}
+          href={"/login?callbackUrl=" + (callbackUrl || "/")}
           className="underline underline-offset-4"
         >
-          Register
+          Login
         </Link>
       </div>
     </form>

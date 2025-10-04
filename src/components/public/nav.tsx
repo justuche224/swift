@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu, X, ShoppingCart } from "lucide-react";
 import Cart from "@/components/cart";
+import NavUser from "../nav-user";
 
 const Nav = () => {
   const pathname = usePathname();
@@ -27,8 +28,8 @@ const Nav = () => {
     },
     {
       label: "Track Order",
-      href: "/track",
-      active: pathname === "/track",
+      href: "/track-item",
+      active: pathname === "/track-item",
     },
     {
       label: "Contact Us",
@@ -73,6 +74,7 @@ const Nav = () => {
             </div>
             <div className="flex items-center gap-2">
               <Cart Icon={ShoppingCart} variant="ghost" />
+              <NavUser/>
               <Button className="rounded-full bg-green-500 text-black px-6 py-2 text-lg font-semibold hover:bg-green-600">
                 Send a Package
               </Button>
@@ -84,6 +86,7 @@ const Nav = () => {
         {isMobile && (
           <div className="flex items-center gap-2">
             <Cart Icon={ShoppingCart} variant="ghost" />
+            <NavUser/>
             <Button
               variant="ghost"
               size="icon"
