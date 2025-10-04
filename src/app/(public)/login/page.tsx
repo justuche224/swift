@@ -1,5 +1,6 @@
 import { LoginForm } from "@/components/public/login-form";
 import Image from "next/image";
+import { Suspense } from "react";
 
 export default function LoginPage() {
   return (
@@ -7,7 +8,9 @@ export default function LoginPage() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
-            <LoginForm className={"p-2 border rounded-lg border-green-500"} />
+            <Suspense fallback={null}>
+              <LoginForm className={"p-2 border rounded-lg border-green-500"} />
+            </Suspense>
           </div>
         </div>
       </div>
