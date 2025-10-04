@@ -75,8 +75,10 @@ const Nav = () => {
             <div className="flex items-center gap-2">
               <Cart Icon={ShoppingCart} variant="ghost" />
               <NavUser/>
-              <Button className="rounded-full bg-green-500 text-black px-6 py-2 text-lg font-semibold hover:bg-green-600">
+              <Button asChild className="rounded-full bg-green-500 text-black px-6 py-2 text-lg font-semibold hover:bg-green-600">
+                <Link href="/gift-catalog">
                 Send a Package
+                </Link>
               </Button>
             </div>
           </>
@@ -124,9 +126,11 @@ const Nav = () => {
             <div className="pt-2 border-t border-gray-800">
               <Button
                 className="w-full rounded-full bg-green-500 text-black py-3 text-lg font-semibold hover:bg-green-600"
-                onClick={() => setIsMenuOpen(false)}
+                asChild
               >
-                Send a Package
+                <Link href="/gift-catalog">
+                  Send a Package
+                </Link>
               </Button>
             </div>
           </div>

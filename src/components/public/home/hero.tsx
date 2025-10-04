@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { Button } from "../../ui/button";
 import { Truck, MapPin, Clock, Sparkle } from "lucide-react";
+import Link from "next/link";
 
 const Hero = () => {
   return (
@@ -26,13 +27,14 @@ const Hero = () => {
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
               <Button className="bg-green-500 text-black px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-full font-semibold hover:bg-green-600">
-                Send a Package
+                <Link href="/gift-catalog">Send a Package</Link>
               </Button>
               <Button
                 variant="outline"
                 className="bg-black text-white border-green-500 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-full font-semibold hover:bg-gray-800"
+                asChild
               >
-                Track Your Order
+                <Link href="/track-item">Track Your Order</Link>
               </Button>
             </div>
 
